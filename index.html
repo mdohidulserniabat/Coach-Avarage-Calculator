@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>সিট অ্যানালাইজার</title>
+
+  <style>
+    :root{
+      --bg:#070b16;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.035);
+      --stroke: rgba(255,255,255,.10);
+      --stroke2: rgba(255,255,255,.14);
+      --text:#eaf1ff;
+      --muted:#a7b8da;
+      --accent:#7aa2ff;
+      --even:#34d399;
+      --odd:#fbbf24;
+      --all:#22d3ee;
+      --bad:#fb7185;
+    }
+
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, "Noto Sans Bengali", "Hind Siliguri", "SolaimanLipi", Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 0%, rgba(122,162,255,.35) 0%, rgba(10,14,28,.0) 60%),
+        radial-gradient(1000px 500px at 90% 10%, rgba(34,211,238,.20) 0%, rgba(10,14,28,.0) 60%),
+        radial-gradient(900px 450px at 60% 100%, rgba(251,191,36,.12) 0%, rgba(10,14,28,.0) 60%),
+        var(--bg);
+    }
+
+    .wrap{max-width:1280px;margin:26px auto;padding:0 16px 46px;}
+
+    /* Top header */
+    .hero{
+      display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+      padding:16px 16px;
+      border-radius:22px;
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+      margin-bottom:14px;
+    }
+    .hero .left{min-width:280px;flex:1;}
+    .title{
+      font-size:18px;font-weight:1100;letter-spacing:.2px;
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .subtitle{
+      margin-top:6px;color:var(--muted);font-size:12px;line-height:1.35;
+    }
+    .tagRow{display:flex;gap:10px;flex-wrap:wrap;}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+      color:var(--muted);font-size:12px;
+      width:fit-content;
+    }
+
+    .grid{display:grid;grid-template-columns: 1.05fr .95fr;gap:14px;}
+    @media(max-width:980px){.grid{grid-template-columns:1fr;}}
+
+    .card{
+      border-radius:22px;
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: 0 18px 50px rgba(0,0,0,.30);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+    }
+    .cardInner{padding:14px 14px 16px;}
+    .cardHead{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      padding:14px 14px 0;
+    }
+    .cardHead .h{
+      font-weight:1100;letter-spacing:.2px;
+      display:flex;align-items:center;gap:10px;
+    }
+
+    .fieldRow{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0;}
+    .field, select{
+      flex:1; min-width:220px;
+      border-radius:14px;
+      border:1px solid var(--stroke2);
+      background:rgba(8,12,24,.55);
+      color:var(--text);
+      padding:10px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    .field:focus, select:focus{
+      border-color: rgba(122,162,255,.75);
+      box-shadow: 0 0 0 4px rgba(122,162,255,.18);
+    }
+
+    .btnRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+    button{
+      cursor:pointer;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(122,162,255,.16);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:1000;
+      transition: transform .05s ease, background .15s ease;
+    }
+    button:hover{background: rgba(122,162,255,.26);}
+    button:active{transform: translateY(1px);}
+    .ghost{background: rgba(255,255,255,.06);}
+    .ghost:hover{background: rgba(255,255,255,.10);}
+    .danger{background: rgba(251,113,133,.16); border-color: rgba(251,113,133,.28);}
+    .danger:hover{background: rgba(251,113,133,.24);}
+
+    textarea{
+      width:100%;
+      height:220px;
+      resize:vertical;
+      border-radius:14px;
+      padding:12px;
+      border:1px solid var(--stroke2);
+      background:rgba(8,12,24,.55);
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+      line-height:1.35;
+    }
+    textarea:focus{
+      border-color: rgba(122,162,255,.75);
+      box-shadow: 0 0 0 4px rgba(122,162,255,.18);
+    }
+
+    .small{color:var(--muted);font-size:12px;line-height:1.35;}
+    .err{color:var(--bad);font-weight:1100;}
+
+    /* Input list items */
+    .inputList{display:flex;flex-direction:column;gap:12px;}
+    .inputItem{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      border-radius:18px;
+      overflow:hidden;
+    }
+    .inputItemTop{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      padding:12px 12px 0;
+    }
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:7px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-weight:1000;font-size:12px;
+    }
+
+    /* Summary (right) per input */
+    .resultStack{display:flex;flex-direction:column;gap:12px;}
+    .resCard{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      border-radius:18px;
+      overflow:hidden;
+    }
+    .resHead{
+      padding:12px 12px 0;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+    .resHead .road{
+      font-weight:1100;
+      color:var(--text);
+    }
+    .miniTag{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color:var(--muted);
+      font-size:11px;font-weight:900;
+    }
+
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+      padding:12px;
+    }
+    @media(max-width:520px){.kpis{grid-template-columns:1fr;}}
+    .kpi{
+      padding:12px;border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(8,12,24,.38);
+    }
+    .kpi .t{
+      display:flex;justify-content:space-between;gap:10px;align-items:center;
+      color:var(--muted);font-size:12px;font-weight:1000;
+    }
+    .kpi .v{
+      margin-top:8px;font-size:28px;font-weight:1200;line-height:1;
+    }
+    .kpi .m{margin-top:8px;font-size:12px;color:var(--text);font-weight:900;}
+    .kpi.even .v{color:var(--even); text-shadow:0 0 18px rgba(52,211,153,.16);}
+    .kpi.odd  .v{color:var(--odd);  text-shadow:0 0 18px rgba(251,191,36,.14);}
+    .kpi.all  .v{color:var(--all);  text-shadow:0 0 18px rgba(34,211,238,.14);}
+
+    /* Coach lists */
+    .lists{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      padding:0 12px 12px;
+    }
+    @media(max-width:980px){.lists{grid-template-columns:1fr;}}
+    .listBox{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(8,12,24,.30);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .listHead{
+      padding:10px 10px 0;
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+    .listTitle{
+      font-weight:1100;color:var(--text);font-size:13px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .dot{width:9px;height:9px;border-radius:99px;}
+    .dot.e{background:var(--even);box-shadow:0 0 16px rgba(52,211,153,.22);}
+    .dot.o{background:var(--odd); box-shadow:0 0 16px rgba(251,191,36,.20);}
+
+    .searchRow{padding:10px;}
+    .search{
+      width:100%;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(8,12,24,.55);
+      color: var(--text);
+      padding:10px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    .search:focus{border-color: rgba(122,162,255,.75); box-shadow:0 0 0 4px rgba(122,162,255,.18);}
+
+    .tblWrap{max-height:320px; overflow:auto;}
+    .tblWrap.expanded{max-height:none; overflow:visible;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.08);font-size:13px;vertical-align:top;}
+    th{
+      position:sticky; top:0;
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-weight:1100;
+      text-align:left;
+      backdrop-filter: blur(6px);
+    }
+    td b{font-weight:1100;}
+    .mono{font-variant-numeric: tabular-nums;}
+
+    /* ---------- PRINT (Short PDF only) ---------- */
+    #pdfHeaderShort, #pdfFooterShort, #shortPdfBody { display:none; }
+
+    @media print{
+      @page { margin: 14mm; }
+      body{background:#fff;color:#111;}
+      .wrap{max-width:none;margin:0;padding:0;}
+      .hero, .grid, .card { display:none !important; }
+
+      #pdfHeaderShort, #pdfFooterShort, #shortPdfBody { display:block !important; }
+
+      #pdfHeaderShort{
+        border:1px solid #e5e7eb;border-radius:18px;
+        padding:10mm;background:linear-gradient(180deg,#fff,#f8fafc);
+        margin-bottom:7mm;
+      }
+      .pdfHdrTop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+      .pdfCompany{font-size:18pt;font-weight:1100;color:#0f172a;letter-spacing:.2px;}
+      .pdfMeta{
+        min-width:280px;border:1px solid #e5e7eb;border-radius:18px;
+        padding:10px 12px;background:#fff;
+      }
+      .metaRow{display:flex;justify-content:space-between;gap:12px;font-size:11pt;color:#111827;margin:6px 0;}
+      .datePill{
+        display:inline-flex;align-items:center;gap:8px;
+        padding:7px 10px;border-radius:999px;
+        background:linear-gradient(180deg,#e6fbff,#ecfeff);
+        border:1px solid #b8f0f7;
+        color:#0f172a;font-weight:1100;
+      }
+      .datePill .val{color:#067a8f;font-weight:1200;}
+
+      .pdfSection{
+        border:1px solid #e5e7eb;border-radius:18px;
+        padding:8mm;background:#fff;margin-bottom:7mm;
+      }
+      .secRoad{
+        text-align:center;
+        font-size:14pt;
+        font-weight:1200;
+        color:#0f172a;
+        margin:0 0 6mm 0;
+      }
+
+      table.pdfTable{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:16px;border:1px solid #e5e7eb;}
+      table.pdfTable thead th{
+        background:#f1f5f9;color:#0f172a;font-weight:1200;font-size:11.2pt;
+        padding:10px;border-bottom:1px solid #e5e7eb;text-align:left;
+        position:static;
+      }
+      table.pdfTable td{
+        padding:10px;border-bottom:1px solid #eef2f7;font-size:11.2pt;font-weight:950;color:#0f172a;
+      }
+      table.pdfTable tr:last-child td{border-bottom:none;}
+      .rowNameEven{color:#0b7a3b;}
+      .rowNameOdd{color:#8a5a00;}
+      .rowNameAll{color:#067a8f;}
+      .avgHi{
+        color:#067a8f;background:#e6fbff;border-left:1px solid #b8f0f7;border-right:1px solid #b8f0f7;
+        font-weight:1200;
+      }
+
+      #pdfFooterShort{
+        margin-top:8mm;border-top:1px solid #e5e7eb;padding-top:6mm;
+        display:flex;justify-content:center;text-align:center;
+      }
+      .footerPill{
+        display:inline-flex;align-items:center;gap:10px;
+        padding:7px 12px;border-radius:999px;
+        border:1px solid #e5e7eb;background:#f8fafc;
+        color:#0f172a;font-weight:1100;font-size:10.8pt;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="left">
+      <div class="title">🚌 প্রিমিয়াম সেলস অ্যানালাইজার</div>
+      <div class="subtitle">মাল্টি-ইনপুট • Road সিলেক্ট করে ডাটা পেস্ট • Coach + Sold strict • Sold=০ বাদ • Short PDF = শুধু টেবিল</div>
+    </div>
+    <div class="tagRow">
+      <div class="pill">✅ Time/Route Ignore</div>
+      <div class="pill">✅ Bangla Number Output</div>
+      <div class="pill">✅ Search + Coach List</div>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT: inputs + admin -->
+    <div class="card">
+      <div class="cardHead">
+        <div class="h">⚙️ সেটিংস ও ইনপুট</div>
+        <div class="pill">ডিফল্ট কোম্পানি দেয়া আছে</div>
+      </div>
+      <div class="cardInner">
+        <div class="fieldRow">
+          <input class="field" id="companyName" placeholder="কোম্পানির নাম" />
+        </div>
+
+        <div class="pill">🧩 রোড/সাইড (এডমিন)</div>
+        <div class="fieldRow">
+          <input class="field" id="newRoadName" placeholder="নতুন রোড (যেমন: কুমিল্লা)" />
+          <input class="field" id="newEvenLabel" placeholder="জোড় সাইড নাম (যেমন: কুমিল্লা সাইড)" />
+          <input class="field" id="newOddLabel" placeholder="বিজোড় সাইড নাম (যেমন: ঢাকা সাইড)" />
+        </div>
+        <div class="btnRow">
+          <button id="addRoad" class="ghost">রোড যোগ</button>
+          <button id="resetRoads" class="ghost">ডিফল্ট রোড</button>
+        </div>
+
+        <div class="pill" style="margin-top:10px;">📌 ইনপুট</div>
+        <div class="btnRow">
+          <button id="addInput">ইনপুট যোগ</button>
+          <button id="analyzeAll">বিশ্লেষণ</button>
+          <button id="pdfShort" class="ghost">Short PDF</button>
+          <button id="clearAll" class="danger">সব ক্লিয়ার</button>
+        </div>
+
+        <p id="msg" class="small"></p>
+
+        <div class="inputList" id="inputList"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: results per input, with coach list + search -->
+    <div class="card">
+      <div class="cardHead">
+        <div class="h">📊 রিপোর্ট</div>
+        <div class="pill">প্রতিটা ইনপুট আলাদা</div>
+      </div>
+      <div class="cardInner">
+        <div class="resultStack" id="resultStack">
+          <div class="small">ইনপুট দিয়ে “বিশ্লেষণ” চাপলে এখানে রিপোর্ট দেখাবে।</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- -------- Short PDF -------- -->
+  <div id="pdfHeaderShort">
+    <div class="pdfHdrTop">
+      <div>
+        <div class="pdfCompany" id="pdfCompany">কোম্পানির নাম</div>
+      </div>
+      <div class="pdfMeta">
+        <div class="metaRow" style="justify-content:flex-end;">
+          <span class="datePill">
+            <span>তারিখ:</span>
+            <span class="val" id="pdfDate"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="shortPdfBody"></div>
+
+  <div id="pdfFooterShort">
+    <div class="footerPill">
+      Prepared by: <b>আসিফ</b>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  const el = (id) => document.getElementById(id);
+
+  // ---------- Bangla number ----------
+  const bnDigits = ["০","১","২","৩","৪","৫","৬","৭","৮","৯"];
+  const toBnNumber = (value) => {
+    if (value === null || value === undefined) return "";
+    const s = String(value);
+    return s.replace(/[0-9]/g, d => bnDigits[Number(d)]);
+  };
+  const toBnFixed2 = (n) => {
+    const v = Number.isFinite(n) ? n.toFixed(2) : "0.00";
+    return toBnNumber(v);
+  };
+
+  // ---------------- Storage (Road Config) ----------------
+  const STORAGE_KEY = "seat_analyzer_roads_premium_v1";
+  const defaultRoads = () => ([
+    { key:"barishal", name:"বরিশাল", evenLabel:"বরিশাল সাইড", oddLabel:"ঢাকা সাইড" },
+    { key:"rangpur",  name:"রংপুর",  evenLabel:"রংপুর সাইড",  oddLabel:"ঢাকা সাইড" },
+  ]);
+
+  const slug = (s) => String(s).trim().toLowerCase()
+    .replace(/\s+/g,"-")
+    .replace(/[^\p{L}\p{N}\-]+/gu,"")
+    .slice(0,40) || ("road-" + Math.random().toString(16).slice(2,8));
+
+  const loadRoads = () => {
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultRoads();
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed) || !parsed.length) return defaultRoads();
+      return parsed;
+    }catch{
+      return defaultRoads();
+    }
+  };
+  const saveRoads = (roads) => localStorage.setItem(STORAGE_KEY, JSON.stringify(roads));
+  let roads = loadRoads();
+
+  // ---------------- Input State ----------------
+  let inputs = []; // {id, roadKey, text}
+  const mkId = () => "i_" + Math.random().toString(16).slice(2,10);
+
+  const ensureCompanyDefault = () => {
+    if (!el("companyName").value.trim()) el("companyName").value = "আহনাফ ট্রান্সপোর্ট (প্রাঃ) লিমিটেড";
+  };
+
+  // ---------------- Parsing (strict) ----------------
+  const getLines = (text) =>
+    text.replace(/\r/g, "")
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+
+  const firstCol = (line) => {
+    const parts = line.split("\t").map(x => x.trim()).filter(Boolean);
+    return parts.length ? parts[0] : line;
+  };
+
+  const isSoldLine = (line) => /^[0-9]{1,3}$/.test(line.trim());
+  const looksLikeTime = (s) => /(\d{1,2}:\d{2})/.test(s) || /\b(AM|PM)\b/i.test(s);
+
+  const extractCoachNo = (coachToken) => {
+    const m = coachToken.match(/(\d{1,5})/);
+    return m ? parseInt(m[1], 10) : null;
+  };
+
+  // allow "258 C"
+  const hasRouteCodes = (coachToken) => {
+    const up = coachToken.toUpperCase();
+    const chunks = up.match(/[A-Z]{1,5}/g) || [];
+    return chunks.length >= 1;
+  };
+
+  const isCoachToken = (token) => {
+    if (!token) return false;
+    if (isSoldLine(token)) return false;
+    if (looksLikeTime(token)) return false;
+    if (/^Coach No\.?/i.test(token)) return false;
+
+    const coachNo = extractCoachNo(token);
+    if (coachNo === null) return false;
+    if (!/[A-Za-z]/.test(token)) return false;
+    if (!hasRouteCodes(token)) return false;
+    if (token.length > 40) return false; // premium: allow slightly longer
+    return true;
+  };
+
+  const parsePairs = (lines) => {
+    const pairs = [];
+    let pending = null;
+
+    for (const raw of lines) {
+      const token = firstCol(raw);
+
+      if (isCoachToken(token)) {
+        pending = { coachFull: token, coachNo: extractCoachNo(token) };
+        continue;
+      }
+
+      if (pending && isSoldLine(token)) {
+        const sold = parseInt(token, 10);
+        if (sold > 0) pairs.push({ ...pending, sold }); // sold=0 বাদ
+        pending = null;
+      }
+    }
+    return pairs;
+  };
+
+  const stats = (items) => {
+    const trips = items.length;
+    const total = items.reduce((s,x)=>s+x.sold,0);
+    const avg = trips ? total / trips : 0;
+    return { trips, total, avg };
+  };
+
+  const detectReportDate = (textAll) => {
+    const m = textAll.match(/\b(\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4})\b/i);
+    return m ? m[1] : "";
+  };
+
+  const bnRoadTitle = (roadName) => `ঢাকা - ${roadName} রোড`;
+
+  // ---------------- UI Rendering ----------------
+  const roadOptionsHtml = () => roads.map(r => `<option value="${r.key}">${r.name}</option>`).join("");
+  const getRoadByKey = (key) => roads.find(r => r.key === key) || roads[0];
+
+  const renderInputs = () => {
+    const host = el("inputList");
+    host.innerHTML = "";
+
+    inputs.forEach((it, idx) => {
+      const r = getRoadByKey(it.roadKey);
+
+      const box = document.createElement("div");
+      box.className = "inputItem";
+      box.innerHTML = `
+        <div class="inputItemTop">
+          <div class="badge">ইনপুট #${idx+1}</div>
+          <button class="ghost danger" data-act="remove" ${inputs.length<=1?'disabled':''} style="padding:8px 10px;border-radius:14px;">ইনপুট বাদ</button>
+        </div>
+        <div style="padding:12px;">
+          <div class="fieldRow" style="margin-top:0;">
+            <select data-act="road">${roadOptionsHtml()}</select>
+            <input class="field" value="${r.evenLabel}" readonly />
+            <input class="field" value="${r.oddLabel}" readonly />
+          </div>
+          <textarea data-act="text" placeholder="এই ইনপুটের ডাটা এখানে পেস্ট করো...">${it.text || ""}</textarea>
+          <div class="small" style="margin-top:8px;">নোট: Sold=০ হলে ট্রিপ ধরা হবে না।</div>
+        </div>
+      `;
+
+      box.querySelector('select[data-act="road"]').value = it.roadKey;
+
+      box.addEventListener("input", (e) => {
+        const act = e.target.getAttribute("data-act");
+        if (act === "text") it.text = e.target.value;
+      });
+
+      box.querySelector('select[data-act="road"]').addEventListener("change", (e) => {
+        it.roadKey = e.target.value;
+        renderInputs();
+      });
+
+      box.querySelector('button[data-act="remove"]').addEventListener("click", () => {
+        if (inputs.length <= 1) return;
+        inputs = inputs.filter(x => x.id !== it.id);
+        renderInputs();
+        renderResults([]);
+        el("msg").textContent = "✅ ইনপুট বাদ দেওয়া হয়েছে। আবার বিশ্লেষণ করুন।";
+      });
+
+      host.appendChild(box);
+    });
+  };
+
+  const escapeHtml = (s) =>
+    String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+  const filterItems = (items, q) => {
+    const query = (q || "").trim().toLowerCase();
+    if (!query) return items;
+    return items.filter(x =>
+      x.coachFull.toLowerCase().includes(query) ||
+      String(x.coachNo).includes(query) ||
+      String(x.sold).includes(query)
+    );
+  };
+
+  const renderCoachTable = (tbody, items) => {
+    const sorted = items.slice().sort((a,b)=>a.coachNo-b.coachNo);
+    tbody.innerHTML = sorted.map(x => `
+      <tr>
+        <td><b class="mono">${escapeHtml(x.coachFull)}</b></td>
+        <td class="mono"><b>${toBnNumber(x.sold)}</b></td>
+      </tr>
+    `).join("");
+  };
+
+  const renderResults = (results) => {
+    const host = el("resultStack");
+    host.innerHTML = "";
+
+    if (!results.length) {
+      host.innerHTML = `<div class="small">ইনপুট দিয়ে “বিশ্লেষণ” চাপলে এখানে রিপোর্ট দেখাবে।</div>`;
+      return;
+    }
+
+    results.forEach((res, idx) => {
+      const node = document.createElement("div");
+      node.className = "resCard";
+
+      node.innerHTML = `
+        <div class="resHead">
+          <div class="road">ইনপুট #${idx+1} — ${bnRoadTitle(res.roadName)}</div>
+          <div class="miniTag">সারসংক্ষেপ + কোচ লিস্ট</div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi even">
+            <div class="t"><span>${res.evenLabel}</span><span>মোট</span></div>
+            <div class="v">${toBnNumber(res.even.total)}</div>
+            <div class="m">ট্রিপ: ${toBnNumber(res.even.trips)} • গড়: ${toBnFixed2(res.even.avg)}</div>
+          </div>
+          <div class="kpi odd">
+            <div class="t"><span>${res.oddLabel}</span><span>মোট</span></div>
+            <div class="v">${toBnNumber(res.odd.total)}</div>
+            <div class="m">ট্রিপ: ${toBnNumber(res.odd.trips)} • গড়: ${toBnFixed2(res.odd.avg)}</div>
+          </div>
+          <div class="kpi all">
+            <div class="t"><span>সর্বমোট</span><span>মোট</span></div>
+            <div class="v">${toBnNumber(res.all.total)}</div>
+            <div class="m">ট্রিপ: ${toBnNumber(res.all.trips)} • গড়: ${toBnFixed2(res.all.avg)}</div>
+          </div>
+        </div>
+
+        <div class="lists">
+          <div class="listBox">
+            <div class="listHead">
+              <div class="listTitle"><span class="dot e"></span>${res.evenLabel} — কোচ তালিকা</div>
+              <button class="ghost" data-act="toggleEven" style="padding:8px 10px;">বড়/ছোট</button>
+            </div>
+            <div class="searchRow">
+              <input class="search" data-act="searchEven" placeholder="খুঁজুন (কোচ/নাম/সংখ্যা)..." />
+            </div>
+            <div class="tblWrap" data-act="wrapEven">
+              <table>
+                <thead><tr><th>কোচ</th><th>বিক্রি</th></tr></thead>
+                <tbody data-act="evenBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="listBox">
+            <div class="listHead">
+              <div class="listTitle"><span class="dot o"></span>${res.oddLabel} — কোচ তালিকা</div>
+              <button class="ghost" data-act="toggleOdd" style="padding:8px 10px;">বড়/ছোট</button>
+            </div>
+            <div class="searchRow">
+              <input class="search" data-act="searchOdd" placeholder="খুঁজুন (কোচ/নাম/সংখ্যা)..." />
+            </div>
+            <div class="tblWrap" data-act="wrapOdd">
+              <table>
+                <thead><tr><th>কোচ</th><th>বিক্রি</th></tr></thead>
+                <tbody data-act="oddBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // initial render tables
+      const evenBody = node.querySelector('[data-act="evenBody"]');
+      const oddBody  = node.querySelector('[data-act="oddBody"]');
+      renderCoachTable(evenBody, res.evenItems);
+      renderCoachTable(oddBody, res.oddItems);
+
+      // search handlers
+      const inpEven = node.querySelector('[data-act="searchEven"]');
+      const inpOdd  = node.querySelector('[data-act="searchOdd"]');
+
+      inpEven.addEventListener("input", () => {
+        renderCoachTable(evenBody, filterItems(res.evenItems, inpEven.value));
+      });
+      inpOdd.addEventListener("input", () => {
+        renderCoachTable(oddBody, filterItems(res.oddItems, inpOdd.value));
+      });
+
+      // expand toggles
+      const wrapEven = node.querySelector('[data-act="wrapEven"]');
+      const wrapOdd  = node.querySelector('[data-act="wrapOdd"]');
+      node.querySelector('[data-act="toggleEven"]').addEventListener("click", () => {
+        wrapEven.classList.toggle("expanded");
+      });
+      node.querySelector('[data-act="toggleOdd"]').addEventListener("click", () => {
+        wrapOdd.classList.toggle("expanded");
+      });
+
+      host.appendChild(node);
+    });
+  };
+
+  // ---------------- PDF Build (Short) — totals only ----------------
+  const buildShortPdfBody = (results) => {
+    const host = el("shortPdfBody");
+    host.innerHTML = "";
+
+    results.forEach((res) => {
+      const sec = document.createElement("div");
+      sec.className = "pdfSection";
+      sec.innerHTML = `
+        <div class="secRoad">${bnRoadTitle(res.roadName)}</div>
+
+        <table class="pdfTable">
+          <thead>
+            <tr>
+              <th style="width:38%;">বিভাগ</th>
+              <th style="width:20%;">ট্রিপ</th>
+              <th style="width:22%;">মোট টিকিট</th>
+              <th style="width:20%;">গড়</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="rowNameEven"><b>${res.evenLabel}</b></td>
+              <td><b>${toBnNumber(res.even.trips)}</b></td>
+              <td><b>${toBnNumber(res.even.total)}</b></td>
+              <td class="avgHi"><b>${toBnFixed2(res.even.avg)}</b></td>
+            </tr>
+            <tr>
+              <td class="rowNameOdd"><b>${res.oddLabel}</b></td>
+              <td><b>${toBnNumber(res.odd.trips)}</b></td>
+              <td><b>${toBnNumber(res.odd.total)}</b></td>
+              <td class="avgHi"><b>${toBnFixed2(res.odd.avg)}</b></td>
+            </tr>
+            <tr>
+              <td class="rowNameAll"><b>সর্বমোট</b></td>
+              <td><b>${toBnNumber(res.all.trips)}</b></td>
+              <td><b>${toBnNumber(res.all.total)}</b></td>
+              <td class="avgHi"><b>${toBnFixed2(res.all.avg)}</b></td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+      host.appendChild(sec);
+    });
+  };
+
+  // ---------------- Analyze All ----------------
+  const analyzeAll = () => {
+    ensureCompanyDefault();
+
+    const allText = inputs.map(x => x.text || "").join("\n");
+    const date = detectReportDate(allText) || "";
+
+    const results = [];
+    let anyData = false;
+
+    for (const it of inputs) {
+      const r = getRoadByKey(it.roadKey);
+      const lines = getLines(it.text || "");
+      const pairs = lines.length ? parsePairs(lines) : [];
+      if (pairs.length) anyData = true;
+
+      const evenItems = pairs.filter(p => p.coachNo % 2 === 0);
+      const oddItems  = pairs.filter(p => p.coachNo % 2 === 1);
+
+      const even = stats(evenItems);
+      const odd  = stats(oddItems);
+      const all  = stats(pairs);
+
+      results.push({
+        roadKey: r.key,
+        roadName: r.name,
+        evenLabel: r.evenLabel,
+        oddLabel: r.oddLabel,
+        even, odd, all,
+        evenItems, oddItems
+      });
+    }
+
+    if (!anyData) {
+      el("msg").innerHTML = `<span class="err">কোনো ইনপুটে বৈধ ডাটা পাওয়া যায়নি (Sold &gt; ০)।</span>`;
+      renderResults([]);
+      return { results: [], date: "" };
+    }
+
+    el("msg").textContent = "✅ বিশ্লেষণ সম্পন্ন। (Coach List + Search দেখানো হচ্ছে)";
+    renderResults(results);
+
+    // PDF header
+    el("pdfCompany").textContent = el("companyName").value.trim() || "কোম্পানির নাম";
+    el("pdfDate").textContent = date ? date : "—";
+
+    buildShortPdfBody(results);
+    return { results, date };
+  };
+
+  // ---------------- Road Admin ----------------
+  el("addRoad").addEventListener("click", () => {
+    const name = (el("newRoadName").value || "").trim();
+    const evenLabel = (el("newEvenLabel").value || "").trim();
+    const oddLabel  = (el("newOddLabel").value || "").trim();
+
+    if (!name || !evenLabel || !oddLabel) {
+      el("msg").innerHTML = `<span class="err">রোড যোগ করতে ৩টা ঘরই পূরণ করুন।</span>`;
+      return;
+    }
+
+    const key = slug(name);
+    if (roads.some(r => r.key === key || r.name === name)) {
+      el("msg").innerHTML = `<span class="err">এই রোড আগে থেকেই আছে।</span>`;
+      return;
+    }
+
+    roads.push({ key, name, evenLabel, oddLabel });
+    saveRoads(roads);
+
+    el("newRoadName").value = "";
+    el("newEvenLabel").value = "";
+    el("newOddLabel").value = "";
+
+    inputs[inputs.length-1].roadKey = key;
+    renderInputs();
+    el("msg").textContent = "✅ নতুন রোড যোগ হয়েছে।";
+  });
+
+  el("resetRoads").addEventListener("click", () => {
+    roads = defaultRoads();
+    saveRoads(roads);
+    inputs = inputs.map(x => ({...x, roadKey: roads[0].key}));
+    renderInputs();
+    el("msg").textContent = "✅ ডিফল্ট রোড ফিরেছে।";
+  });
+
+  // ---------------- Buttons ----------------
+  el("addInput").addEventListener("click", () => {
+    inputs.push({ id: mkId(), roadKey: roads[0].key, text: "" });
+    renderInputs();
+    el("msg").textContent = "✅ নতুন ইনপুট যোগ হয়েছে।";
+  });
+
+  el("clearAll").addEventListener("click", () => {
+    inputs = [{ id: mkId(), roadKey: roads[0].key, text: "" }];
+    renderInputs();
+    renderResults([]);
+    el("msg").textContent = "✅ সব ক্লিয়ার হয়েছে।";
+  });
+
+  el("analyzeAll").addEventListener("click", analyzeAll);
+
+  el("pdfShort").addEventListener("click", () => {
+    const out = analyzeAll();
+    if (!out.results.length) return;
+    window.print();
+  });
+
+  // ---------------- Init ----------------
+  ensureCompanyDefault();
+  inputs = [{ id: mkId(), roadKey: roads[0].key, text: "" }];
+  renderInputs();
+  renderResults([]);
+})();
+</script>
+</body>
+</html>
